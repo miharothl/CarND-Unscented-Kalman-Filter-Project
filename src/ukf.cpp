@@ -352,12 +352,15 @@ void UKF::AugmentedSigmaPoints(MatrixXd* Xsig_out) {
 
   //create augmented mean vector
   VectorXd x_aug = VectorXd(7);
+  x_aug.fill(0.);
 
   //create augmented state covariance
   MatrixXd P_aug = MatrixXd(7, 7);
+  P_aug.fill(0.);
 
   //create sigma point matrix
   MatrixXd Xsig_aug = MatrixXd(n_aug_, 2 * n_aug_ + 1);
+  Xsig_aug.fill(0.);
 
   //create augmented mean state
   x_aug.head(5) = x_;
@@ -549,6 +552,9 @@ void UKF::PredictRadarMeasurement(MatrixXd Xsig_pred, VectorXd* z_out, MatrixXd*
  * Student part begin
  ******************************************************************************/
 
+
+  std::cout << "Xsig_pred = " << std::endl << Xsig_pred_ << std::endl;
+
   //transform sigma points into measurement space
   for (int i = 0; i < 2 * n_aug_ + 1; i++) {  //2n+1 simga points
 
@@ -594,6 +600,8 @@ void UKF::PredictRadarMeasurement(MatrixXd Xsig_pred, VectorXd* z_out, MatrixXd*
           0, 0,std_radrd_*std_radrd_;
   S = S + R;
 
+  std::cout << "S = " << std::endl << S << std::endl;
+
 
 /*******************************************************************************
  * Student part end
@@ -606,6 +614,7 @@ void UKF::PredictRadarMeasurement(MatrixXd Xsig_pred, VectorXd* z_out, MatrixXd*
   //write result
   *z_out = z_pred;
   *S_out = S;
+  *Zsig_out = Zsig;
 }
 
 void UKF::PredictLidarMeasurement(MatrixXd Xsig_pred, VectorXd* z_out, MatrixXd* S_out, MatrixXd* Zsig_out) {
@@ -680,6 +689,7 @@ void UKF::PredictLidarMeasurement(MatrixXd Xsig_pred, VectorXd* z_out, MatrixXd*
   //write result
   *z_out = z_pred;
   *S_out = S;
+  *Zsig_out = Zsig;
 }
 
 
@@ -736,6 +746,7 @@ void UKF::UpdateState(MeasurementPackage meas_package, VectorXd z_pred, MatrixXd
 
     //Kalman gain K;
     MatrixXd K = Tc * S_pred.inverse();
+    std::cout << "Kg = " << std::endl << K << std::endl;
 
     //residual
     VectorXd z_diff = z - z_pred;
@@ -745,8 +756,8 @@ void UKF::UpdateState(MeasurementPackage meas_package, VectorXd z_pred, MatrixXd
     while (z_diff(1)<-M_PI) z_diff(1)+=2.*M_PI;
 
     //update state mean and covariance matrix
-    x_ = x_ + K * z_diff;
-    P_ = P_ - K*S_pred*K.transpose();
+    x_ = x_pred_ + K * z_diff;
+    P_ = P_pred_ - K*S_pred*K.transpose();
 
 /*******************************************************************************
  * Student part end
@@ -806,6 +817,8 @@ void UKF::UpdateLidarState(MeasurementPackage meas_package, VectorXd z_pred, Mat
   z << meas_package.raw_measurements_(0),
           meas_package.raw_measurements_(1);
 
+
+
   //create matrix for cross correlation Tc
   MatrixXd Tc = MatrixXd(n_x_, n_z);
 
@@ -820,6 +833,7 @@ void UKF::UpdateLidarState(MeasurementPackage meas_package, VectorXd z_pred, Mat
     //residual
     VectorXd z_diff = Zsig.col(i) - z_pred;
 
+
     // state difference
     VectorXd x_diff = Xsig_pred_.col(i) - x_pred_;
     //angle normalization
@@ -831,12 +845,17 @@ void UKF::UpdateLidarState(MeasurementPackage meas_package, VectorXd z_pred, Mat
   //Kalman gain K;
   MatrixXd K = Tc * S_pred.inverse();
 
+  std::cout << "Updated state K: " << std::endl << K << std::endl;
+
   //residual
   VectorXd z_diff = z - z_pred;
 
+  std::cout << "Updated state z_diff: " << std::endl << z_diff << std::endl;
+  std::cout << "Updated state x_: " << std::endl << x_ << std::endl;
+
   //update state mean and covariance matrix
-  x_ = x_ + K * z_diff;
-  P_ = P_ - K*S_pred*K.transpose();
+  x_ = x_pred_ + K * z_diff;
+  P_ = P_pred_ - K*S_pred*K.transpose();
 
 /*******************************************************************************
  * Student part end
