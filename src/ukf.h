@@ -32,8 +32,13 @@ public:
   ///* predicted sigma points matrix
   MatrixXd Xsig_pred_;
 
+  VectorXd x_pred_;
+  MatrixXd P_pred_;
+
   ///* time when the state is true, in us
   long long time_us_;
+
+  long previous_timestamp_;
 
   ///* Process noise standard deviation longitudinal acceleration in m/s^2
   double std_a_;
@@ -108,6 +113,26 @@ public:
    * @param meas_package The measurement at k+1
    */
   void UpdateRadar(MeasurementPackage meas_package);
+
+
+
+  void GenerateSigmaPoints(MatrixXd* Xsig_out);
+  void AugmentedSigmaPoints(MatrixXd* Xsig_out);
+//  void SigmaPointPrediction(MatrixXd* Xsig_out);
+  void SigmaPointPrediction(MatrixXd Xsig_aug, double dt ,MatrixXd* Xsig_out);
+//  void PredictMeanAndCovariance(VectorXd* x_pred, MatrixXd* P_pred);
+  void PredictMeanAndCovariance(MatrixXd Xsig_pred, VectorXd* x_out, MatrixXd* P_out);
+//  void PredictRadarMeasurement(VectorXd* z_out, MatrixXd* S_out);
+
+  void PredictLidarMeasurement(MatrixXd Xsig_pred, VectorXd* z_out, MatrixXd* S_out, MatrixXd* Zsig_out);
+  void UpdateLidarState(MeasurementPackage meas_package, VectorXd z_pred, MatrixXd S_pred, MatrixXd Zsig, VectorXd* x_out, MatrixXd* P_out);
+
+  void PredictRadarMeasurement(MatrixXd Xsig_pred, VectorXd* z_out, MatrixXd* S_out, MatrixXd* Zsig_out);
+  void UpdateState(MeasurementPackage meas_package, VectorXd z_pred, MatrixXd S_pred, MatrixXd Zsig, VectorXd* x_out, MatrixXd* P_out);
+
+
+  double NormalizeAngle(double angle);
+
 };
 
 #endif /* UKF_H */
