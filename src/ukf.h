@@ -23,6 +23,9 @@ public:
   ///* if this is false, radar measurements will be ignored (except for init)
   bool use_radar_;
 
+  ///* if this is true, verbose infor will be printed
+  bool verbose_;
+
   ///* state vector: [pos1 pos2 vel_abs yaw_angle yaw_rate] in SI units and rad
   VectorXd x_;
 
@@ -32,7 +35,10 @@ public:
   ///* predicted sigma points matrix
   MatrixXd Xsig_pred_;
 
+  ///* prediced state vector: [pos1 pos2 vel_abs yaw_angle yaw_rate] in SI units and rad
   VectorXd x_pred_;
+
+  ///* predicted state covariance matrix
   MatrixXd P_pred_;
 
   ///* time when the state is true, in us
@@ -114,25 +120,20 @@ public:
    */
   void UpdateRadar(MeasurementPackage meas_package);
 
-
-
-  void GenerateSigmaPoints(MatrixXd* Xsig_out);
+private:
   void AugmentedSigmaPoints(MatrixXd* Xsig_out);
-//  void SigmaPointPrediction(MatrixXd* Xsig_out);
   void SigmaPointPrediction(MatrixXd Xsig_aug, double dt ,MatrixXd* Xsig_out);
-//  void PredictMeanAndCovariance(VectorXd* x_pred, MatrixXd* P_pred);
   void PredictMeanAndCovariance(MatrixXd Xsig_pred, VectorXd* x_out, MatrixXd* P_out);
-//  void PredictRadarMeasurement(VectorXd* z_out, MatrixXd* S_out);
 
   void PredictLidarMeasurement(MatrixXd Xsig_pred, VectorXd* z_out, MatrixXd* S_out, MatrixXd* Zsig_out);
-  void UpdateLidarState(MeasurementPackage meas_package, VectorXd z_pred, MatrixXd S_pred, MatrixXd Zsig, VectorXd* x_out, MatrixXd* P_out);
+  void UpdateStateFromLidarMeasurement(MeasurementPackage meas_package, VectorXd z_pred, MatrixXd S_pred,
+                                       MatrixXd Zsig, VectorXd *x_out, MatrixXd *P_out);
 
   void PredictRadarMeasurement(MatrixXd Xsig_pred, VectorXd* z_out, MatrixXd* S_out, MatrixXd* Zsig_out);
-  void UpdateState(MeasurementPackage meas_package, VectorXd z_pred, MatrixXd S_pred, MatrixXd Zsig, VectorXd* x_out, MatrixXd* P_out);
-
+  void UpdateStateFromRadarMeasurement(MeasurementPackage meas_package, VectorXd z_pred, MatrixXd S_pred, MatrixXd Zsig,
+                                       VectorXd *x_out, MatrixXd *P_out);
 
   double NormalizeAngle(double angle);
-
 };
 
 #endif /* UKF_H */
